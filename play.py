@@ -5,15 +5,16 @@ import lib
 
 key = ['c4', 'd4', 'e4', 'f4', 'g4', 'a4', 'b4', 'c5']
 dur = [480 for i in range(len(key))]
-vol = lib.set_vol((64, 8, 2))
-lgh = lib.set_lgh((0.9, 8, 0))
+cre = 0  # set a crescendo with a positive value and decrescendo otherwise
+lev = 64 # set how loud things are played
+vol = lib.set_vol((lev, len(key), cre))
 
 def music(seed=3):
     mid = MidiFile()
     mid.ticks_per_beat = 480
     random.seed(seed=seed)
 
-    part = lib.gen_part(key, dur, vol, lgh)
+    part = lib.gen_part(key, dur, vol)
     trk = lib.part2trk(part)
 
     mid.tracks.append(trk)

@@ -64,15 +64,10 @@ def set_lgh(lgh_trpl=(0.9, 4, -0.1), scale=0.1):
 
 
 def split(val, div):
-    """Divide in two in a random fashion using a normal distribution"""
-    a_remainer = - 1
-    b_remainer = - 1
-    while a_remainer < 0 or b_remainer < 0:
-        a_remainer = int(val*div)
-        b_remainer = val - a_remainer
-
+    """Divide a number given a percentage"""
+    a_remainer = int(val*div)
+    b_remainer = val - a_remainer
     return a_remainer, b_remainer
-
 
 
 def char2note(char):
@@ -95,11 +90,14 @@ def char2note(char):
     return note_nb, v_on, v_off
 
 
-def gen_part(key, dur, vol, lgh):
+def gen_part(key, dur, vol, lgh=None):
     """"Merge the different element to add a track to a midi file"""
     if (len(key) != len(dur)) or (len(key) != len(vol)):
         print(len(key), len(dur), len(vol))
         import pdb; pdb.set_trace()  # XXX BREAKPOINT
+
+    if not lgh:
+        lgh=[1 for i in range(len(vol))]
 
     l_size = len(vol)
     out = [[key[i], dur[i], vol[i], lgh[i]] for i in range(l_size)]
