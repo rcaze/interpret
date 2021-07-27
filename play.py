@@ -27,4 +27,4 @@ seed = input('Set the seed:')
 name = 'music.mid'
 mid = music(int(seed))
 mid.save(name)
-play(name)
+lib.play(name)
