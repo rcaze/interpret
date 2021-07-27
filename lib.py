@@ -1,9 +1,9 @@
 from mido import MetaMessage, Message, MidiFile, MidiTrack
-from pydub import AudioSegment
+
 import numpy.random as rd
 import numpy as np
-import midi2audio as m2a
 import pygame
+
 import os
 from shutil import copyfile
 from pathlib import Path
