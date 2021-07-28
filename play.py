@@ -1,15 +1,24 @@
+import argparse
 from mido import MidiFile
 from numpy import random
+from pandas import read_csv
 import lib
 
+parser = argparse.ArgumentParser(description='Set the tune to play and possibly the seed')
+parser.add_argument('tune', nargs='?', type=str, default='scale')
+parser.add_argument('--seed', nargs='?', type=int, default=3,
+                    help='The random seed to use (omit to not use a seed)')
+args = parser.parse_args()
 
-key = ['c4', 'd4', 'e4', 'f4', 'g4', 'a4', 'b4', 'c5']
-dur = [480 for i in range(len(key))]
-cre = 0  # set a crescendo with a positive value and decrescendo otherwise
-lev = 64 # set how loud things are played
-vol = lib.set_vol((lev, len(key), cre))
+def music(fname, seed):
+    """Play a tune encoded in a group of csv file"""
+    k_d = read_csv(fname + '.csv')
+    key = list(k_d['key'])
+    dur = list(k_d['dur'])
+    cre = 0  # set a crescendo with a positive value and decrescendo otherwise
+    lev = 64 # set how loud things are played
+    vol = lib.set_vol((lev, len(key), cre))
 
-def music(seed=3):
     mid = MidiFile()
     mid.ticks_per_beat = 480
     random.seed(seed=seed)
@@ -19,13 +28,12 @@ def music(seed=3):
 
     mid.tracks.append(trk)
 
-    mid, ibis = lib.set_ibis(mid, (500000, 8, 0), scale=100000)
-
+    tks_dur = sum(dur)
+    nbeats = int(tks_dur / mid.ticks_per_beat)
+    mid, ibis = lib.set_ibis(mid, (500000, nbeats, 0), scale=100000)
+    mid.save(fname + '.mid')
     return mid
 
 
-seed = input('Set the seed:')
-name = 'music.mid'
-mid = music(int(seed))
-mid.save(name)
-lib.play(name)
+mid = music(args.tune, args.seed)
+lib.play(args.tune + '.mid')
