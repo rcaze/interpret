@@ -6,5 +6,6 @@ Python 3+, Numpy, Mido and Pygames
 
 ## Installation
 ```
-pip install requirements.txt
+# apt install timidity
+$ pip install requirements.txt
 ```
