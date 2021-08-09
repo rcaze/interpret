@@ -26,7 +26,7 @@ def music(fname, seed, var):
 
     #determine the duration in ticks and the number of beats
     nbeats = int(dur / mid.ticks_per_beat)
-    mid, ibis = lib.set_ibis(mid, (tempo, nbeats, 0), scale=var)
+    mid, ibis = lib.set_ibis(mid, (random.normal(tempo,var), nbeats, 0), scale=var)
     mid.save(fname + '_interpreted.mid')
     return mid
 
