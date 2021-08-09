@@ -9,3 +9,13 @@ Python 3+, Numpy, Mido and Pygames
 # apt install timidity
 $ pip install requirements.txt
 ```
+## Usage
+```
+$ python interpret.py fname --seed 2
+```
+or if you want to play a mid
+```
+$ python interpret_mid.py fname --seed 4 -var 10000
+```
+In our depo fname="002.mid"
+
