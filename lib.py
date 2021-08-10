@@ -3,6 +3,8 @@ from mido import MetaMessage, Message, MidiFile, MidiTrack
 import numpy.random as rd
 import numpy as np
 import pygame
+from pydub import AudioSegment
+import midi2audio as m2a
 
 import os
 from shutil import copyfile
@@ -121,6 +123,7 @@ def part2trk(part):
             n_nb, v_pn, v_off = char2note(c_n)
             trk.append(Message("note_on", note=n_nb, velocity=note[2],
                                time=remain))
+            remain=0
         end, remain = split(note[1], note[3])
 
         trk.append(Message("note_off", note=n_nb, velocity=100,
@@ -207,6 +210,21 @@ def play(midi_filename):
         raise SystemExit
 
 
+
+
+def mid2aud(mid, name=None):
+    """Create AudioSegment from a Mid file"""
+    mid.save("temp.mid")
+    if name:
+        m2a.FluidSynth().midi_to_audio('temp.mid', name)
+        seg = None
+    else:
+        m2a.FluidSynth().midi_to_audio('temp.mid', 'temp.wav')
+        seg = AudioSegment.from_file('temp.wav')
+    #os.remove("temp.mid")
+    if not name:
+        os.remove("temp.wav")
+    return seg
 
 
 if __name__ == "__main__":

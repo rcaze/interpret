@@ -18,4 +18,7 @@ or if you want to play a mid
 $ python interpret_mid.py fname --seed 4 -var 10000
 ```
 In our depo fname="002.mid"
-
+```
+$ python interpret_list.py --seed 3254
+```
+To generate an interpretation of mad world
