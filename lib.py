@@ -113,8 +113,8 @@ def part2trk(part):
 
     for i, note in enumerate(part):
         if note[0] == 's':  # Message for a silence
-            trk.append(Message("note_on", note=0, velocity=100, time=0))
-            trk.append(Message("note_off", note=0, velocity=100, time=note[1]))
+            trk.append(Message("note_on", note=0, velocity=0, time=0))
+            trk.append(Message("note_off", note=0, velocity=0, time=note[1]))
             continue
 
         nlist = note[0].split(' ')
@@ -134,39 +134,7 @@ def part2trk(part):
             trk.append(Message("note_off", note=n_nb, velocity=100,
                                time=0))
 
-    return trk
-
-
-def set_ibis(mid, ibi=(100000, 1, 0), scale=2000, trk=None):
-    """"Set the interbeat intervals (ibs) of a song using rand_v to provide a unique texture to it
-
-    Parameters
-    ----------
-    mid: MidiFile, the midi file
-    ibi: a triple, the initial value of the inter-beat interval (ibi)
-    how many ibi and how they evolve
-    trk: None or TrackFile, the track containing the tempo
-    """
-    ibis = random_walk(ibi[0], ibi[1], ibi[2], scale, bound=(100000, 2000000))
-
-    if not trk:  # Create a track to have all the temporal variation
-        trk = MidiTrack()
-        trk.name = "Tempo variation"
-
-    # Set a metamessage to change the tempo between each beat
-    trk.append(MetaMessage("set_tempo",
-                           tempo=ibis[0],
-                           time=0))
-
-    for i, c_ibi in enumerate(ibis):  # Change the tempo
-        trk.append(MetaMessage("set_tempo",
-                               time=mid.ticks_per_beat,
-                               tempo=c_ibi))
-
-    mid.tracks.append(trk)
-
-    return mid, ibis
-
+    return [trk]
 
 
 
@@ -227,29 +195,85 @@ def mid2aud(mid, name=None):
     return seg
 
 
-if __name__ == "__main__":
-    mid = MidiFile()
-    # Set the keys to play a C scale on two octaves
-    Cscale = ["c", "d", "e", "f", "g", "a", "b"]
-    key = [i + "4" for i in Cscale] + ["c5"]
-    # Set a constant duration of a Whole here
-    dur = [480 for s in key]
-    # Vary the velocity/volume for each key stroke
-    vol = set_vol((64, 8, 3))
-    # Set the lightness to have a 4/4 time signature
-    lgh = set_lgh((0.9, 4, -0.15))
-    lgh += set_lgh((0.9, 4, -0.15))
-    deter = False
-    if deter:
-        lgh = [0.9, 0.8, 0.8, 0.4]
-        lgh += [0.9, 0.8, 0.8, 0.4]
-    # Merge all and add to the mid
-    part = gen_part(key, dur, vol, lgh)
-    trk = part2trk(part)
+def set_ibis(mid, ibis_feat=[(100000, 1, 0)], scale=300000, trk=None):
+    """"Set the interbeat intervals (ibs) of a song using rand_v to provide a unique texture to it
+
+    Parameters
+    ----------
+    mid: MidiFile, the midi file
+    ibi: a triple, the initial value of the inter-beat interval (ibi)
+    how many ibi and how they evolve
+    trk: None or TrackFile, the track containing the tempo
+    """
+    ibis = []
+    for i, ibi in enumerate(ibis_feat):
+        ibis += random_walk(ibi[0], ibi[1], ibi[2], scale, bound=(100000, 2000000))
+
+    trk = MidiTrack()
+    trk.name = "Tempo variation"
+
+    # Set a metamessage to change the tempo between each beat
+    trk.append(MetaMessage("set_tempo",
+                           tempo=ibis[0],
+                           time=0))
+
+    for i, c_ibi in enumerate(ibis):  # Change the tempo
+        trk.append(MetaMessage("set_tempo",
+                               time=mid.ticks_per_beat,
+                               tempo=c_ibi))
+
     mid.tracks.append(trk)
 
-    mid, ibs = set_ibis(mid, (500000, 8, 0))
-    mid.save("scale.mid")
+    return mid, ibis
+
+
+def interpret(song, ibis_feat=[(1000000, 1, 0)], scale=30000):
+    """Interpret a song according to a givent tempo variation
+    """
+    mid = MidiFile()
+
+    parts, beat_dur, name, seeds = song()
+    trks = []
+    for part in parts:
+        trks += part2trk(part)
+    mid.ticks_per_beat = beat_dur
+
+    for trk in trks:
+        mid.tracks.append(trk)
+
+    rd.seed(seed=int(seeds[2]))
+    mid, ibis = set_ibis(mid, ibis_feat, scale=scale)
+    mid.save(name + '.mid')
+    return mid
+
+
+if __name__ == "__main__":
+    def Cscale(name="Cscale", seeds=[1,2,9]):
+        """
+        A tune is defined as a python function
+        """
+        # A beat last 480 ticks
+        b = 480
+        beat_dur = b
+        # Set the keys
+        Cscale = ["c", "d", "e", "f", "g", "a", "b"]
+        key = [i + "4" for i in Cscale] + ["c5"]
+        # Set a constant duration of a Whole here
+        dur = [b for s in key]
+        # Vary the velocity/volume for each key stroke
+        vol = set_vol((64, len(key), 5))
+        # Set the lightness to have a 4/4 time signature
+        lgh = set_lgh((0.9, 4, -0.15))
+        lgh += set_lgh((0.9, 4, -0.15))
+        deter = False
+        if deter:
+            lgh = [0.9, 0.8, 0.8, 0.4]
+            lgh += [0.9, 0.8, 0.8, 0.4]
+        # Merge all and add to the mid
+        part = gen_part(key, dur, vol, lgh)
+        return [part], beat_dur, name, seeds
+
+    mid = interpret(Cscale, [(500000, 8, 0)], scale=30000)
 
     # Play the mid file
-    play("scale.mid")
+    play("Cscale.mid")
